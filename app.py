@@ -1,4 +1,3 @@
-#modified
 # import flask dependencies
 from flask import Flask, request, make_response, jsonify
 from today_statistics import get_today_national_stats, get_today_regional_stats, get_today_province_stats
