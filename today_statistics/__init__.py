@@ -56,8 +56,8 @@ def get_today_national_stats(params):
            __make__today_national_stats_facebook_response__(df_toRecap)
 
 def __country_not_found__(countryName):
-    displayText = "🧐 Purtroppo non ho informazioni su{}, attualmente riesco a darti informazioni sull'Italia " \
-                  "e le sue regioni."
+    displayText = "Purtroppo non ho informazioni su{}, attualmente riesco a darti informazioni sull'Italia " \
+                  "e le sue regioni"
 
     textToSpeech = displayText  # TODO: remove when there will be support for Google Action
 
