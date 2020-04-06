@@ -8,6 +8,7 @@ NUOVI_POSITIVI = "variazione_totale_positivi"
 DECEDUTI = "deceduti"
 REGION_NAME = "denominazione_regione"
 PROVINCE_NAME = "denominazione_provincia"
+DATA = "data"
 
 # fix trentino sub region
 TRENTINO_ALTO_ADIGE = "Trenitino-Alto Adige"
@@ -18,6 +19,10 @@ PA_TRENTO = "P.A. Trento"
 TODAY = "today"
 YESTERDAY = "yesterday"
 
+# const for souce of data
+SOURCE_PROTEZIONE_CIVILE = "Dati pubblicati dalla Protezione Civile\n" + \
+                           "Link: https://github.com/pcm-dpc/COVID-19"
+
 
 # TODO: create a method that retrive github document and remove duplicated code
 
@@ -27,14 +32,16 @@ def get_today_national_stats(params):
     Link: https://github.com/pcm-dpc/COVID-19
     :return: string for googleResponse textToSpeech and Facebook
     """
-    country_org = params.get("location").get("country") #original country used for response
+    country_org = params.get("location")  # original country used for response
+    try:
+        country_org = country_org.get("country")
+    except AttributeError:
+        pass  # if location is empty than we can assume it is Italy
     country = country_org.lower()
-    print("Ciao")
-    print(country)
-    print("Ok")
+
     if country != "italia" and country != "":
         return __country_not_found__(country, country_org), \
-        __country_not_found__(country, country_org) # This one is for facebook compatibility
+               __country_not_found__(country, country_org)  # This one is for facebook compatibility
 
     today = date.today().strftime("%Y%m%d")
     yesterday = date.strftime(datetime.now() - timedelta(1), "%Y%m%d")
@@ -57,19 +64,22 @@ def get_today_national_stats(params):
 
     df_toRecap = df_today.append(df_yesterday)
 
-    return __make_today_national_stats_google_response__(df_toRecap), \
-           __make__today_national_stats_facebook_response__(df_toRecap)
+    today_date = (df_today[DATA][0]).split("T")[0]
+
+    return __make_today_national_stats_google_response__(df_toRecap, today_date), \
+           __make__today_national_stats_facebook_response__(df_toRecap, today_date)
+
 
 def __country_not_found__(countryName, originalName):
-
     displayText = "🧐Purtroppo non ho informazioni su{} ".format("lla" if countryName.endswith("a") else "l")
 
-    displayText+= originalName+", attualmente riesco a darti informazioni sull'Italia " \
-                  "e le sue regioni"
+    displayText += originalName + ", attualmente riesco a darti informazioni sull'Italia " \
+                                  "e le sue regioni"
 
-    textToSpeech =  displayText
+    textToSpeech = displayText
 
     return textToSpeech, displayText
+
 
 def get_today_regional_stats(params):
     region = params.get("region")
@@ -89,6 +99,8 @@ def get_today_regional_stats(params):
         url_yesterday = url_yesterday.replace(yesterday, new_yesterday)
         df_today = pd.read_csv(url_today, error_bad_lines=False)
 
+    today_date = (df_today[DATA][0]).split("T")[0]
+
     if (region == TRENTINO_ALTO_ADIGE):
         df_today = __trentinoFix__(df_today)
     else:
@@ -98,14 +110,14 @@ def get_today_regional_stats(params):
     df_today.rename(index={df_today.index.values[0]: TODAY}, inplace=True)  # rename the index with today
     df_yesterday = pd.read_csv(url_yesterday, error_bad_lines=False)
     if (region == TRENTINO_ALTO_ADIGE):
-      df_yesterday = __trentinoFix__(df_yesterday)
+        df_yesterday = __trentinoFix__(df_yesterday)
     else:
         df_yesterday = df_yesterday[df_yesterday[REGION_NAME] == region]
     df_yesterday.rename(index={df_yesterday.index.values[0]: YESTERDAY}, inplace=True)
 
     df_toRecap = df_today.append(df_yesterday)
-    return __make__today_regional_stats_google_response__(df_toRecap), \
-           __make__today_regional_stats_facebook_response__(df_toRecap)
+    return __make__today_regional_stats_google_response__(df_toRecap, today_date), \
+           __make__today_regional_stats_facebook_response__(df_toRecap, today_date)
 
 
 def get_today_province_stats(params):
@@ -137,11 +149,11 @@ def get_today_province_stats(params):
            __make__today_regional_stats_facebook_response__(df_toRecap)
 
 
-def __make_today_national_stats_google_response__(data):
+def __make_today_national_stats_google_response__(data, date):
     today_vs_yesterday_positive = data[NUOVI_POSITIVI].loc[TODAY] - data[NUOVI_POSITIVI].loc[YESTERDAY]
     today_vs_yesterday_dead = data[DECEDUTI].loc[TODAY] - data[DECEDUTI].loc[YESTERDAY]
     today_vs_yesterday_healed = data[DIMESSI].loc[TODAY] - data[DIMESSI].loc[YESTERDAY]
-    displayText = "Situazione aggiornata:\n"
+    displayText = "Situazione aggiornata al {}:\n".format(date)
 
     displayText += "🔴 {} nuovi casi positivi, {} {} rispetto a ieri;" \
         .format(data[NUOVI_POSITIVI].loc[TODAY], today_vs_yesterday_positive,
@@ -155,7 +167,9 @@ def __make_today_national_stats_google_response__(data):
         .format(data[DIMESSI].loc[TODAY], today_vs_yesterday_healed,
                 " caso in più" if today_vs_yesterday_healed == 1 else "casi in più" if today_vs_yesterday_healed > 0 else "")
 
-    displayText += "\n Posso esserti ancora d'aiuto?"
+    displayText += "\n"
+    displayText += SOURCE_PROTEZIONE_CIVILE
+    displayText += "\n\n Posso esserti ancora d'aiuto?"
 
     textToSpeech = "La situazione aggiornata è:\n"
 
@@ -171,18 +185,18 @@ def __make_today_national_stats_google_response__(data):
         .format(today_vs_yesterday_healed,
                 "dimesso dall'ospedale e guarito in più" if today_vs_yesterday_healed == 1 else "dimessi dall'ospedale e guariti in più" if today_vs_yesterday_healed > 0 else "dimessi e guariti")
 
-    textToSpeech += "\n Posso esserti ancora d'aiuto?"
+    textToSpeech += "\n\n Posso esserti ancora d'aiuto?"
 
     return textToSpeech, displayText
 
 
-def __make__today_regional_stats_google_response__(data):
+def __make__today_regional_stats_google_response__(data, date):
     today_vs_yesterday_positive = data[NUOVI_POSITIVI].loc[TODAY] - data[NUOVI_POSITIVI].loc[YESTERDAY]
     today_vs_yesterday_dead = data[DECEDUTI].loc[TODAY] - data[DECEDUTI].loc[YESTERDAY]
     today_vs_yesterday_healed = data[DIMESSI].loc[TODAY] - data[DIMESSI].loc[YESTERDAY]
     # print(data)
     # data[REGION_NAME].loc[TODAY]
-    displayText = "Situazione aggiornata:\n"
+    displayText = "Situazione aggiornata al {}:\n".format(date)
 
     displayText += "🔴 {} nuovi casi positivi, {} {} rispetto a ieri;" \
         .format(data[NUOVI_POSITIVI].loc[TODAY], today_vs_yesterday_positive,
@@ -196,7 +210,8 @@ def __make__today_regional_stats_google_response__(data):
         .format(data[DIMESSI].loc[TODAY], today_vs_yesterday_healed,
                 " caso in più" if today_vs_yesterday_healed == 1 else "casi in più" if today_vs_yesterday_healed > 0 else "")
 
-    displayText += "\n Posso esserti ancora d'aiuto?"
+    displayText += "\n" + SOURCE_PROTEZIONE_CIVILE
+    displayText += "\n\nPosso esserti ancora d'aiuto?"
 
     textToSpeech = "La situazione aggiornata è:\n"
 
@@ -212,16 +227,16 @@ def __make__today_regional_stats_google_response__(data):
         .format(today_vs_yesterday_healed,
                 "dimesso dall'ospedale e guarito in più" if today_vs_yesterday_healed == 1 else "dimessi dall'ospedale e guariti in più" if today_vs_yesterday_healed > 0 else "dimessi e guariti")
 
-    textToSpeech += "\n Posso esserti ancora d'aiuto?"
+    textToSpeech += "\n\nPosso esserti ancora d'aiuto?"
 
     return textToSpeech, displayText
 
 
-def __make__today_regional_stats_facebook_response__(data):  # TODO: implement method for facebook
+def __make__today_regional_stats_facebook_response__(data, date):  # TODO: implement method for facebook
     return "Facebook not implemented yet!"
 
 
-def __make__today_national_stats_facebook_response__(data):  # TODO: implement method for facebook
+def __make__today_national_stats_facebook_response__(data, date):  # TODO: implement method for facebook
     return "Facebook not implmented yet!"
 
 
@@ -235,5 +250,5 @@ def __trentinoFix__(df):
     df_bo = df[df[REGION_NAME] == PA_BOLZANO]
     df_tr = df[df[REGION_NAME] == PA_TRENTO]
     df_bo = df_bo.append(df_tr).sum()
-    df_return = a = pd.DataFrame(df_bo.values.reshape(1, 19), columns = df_bo.index.values)
+    df_return = a = pd.DataFrame(df_bo.values.reshape(1, 19), columns=df_bo.index.values)
     return df_return
