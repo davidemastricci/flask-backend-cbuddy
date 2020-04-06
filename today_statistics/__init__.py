@@ -37,7 +37,10 @@ def get_today_national_stats(params):
         country_org = country_org.get("country")
     except AttributeError:
         pass  # if location is empty than we can assume it is Italy
-    country = country_org.lower()
+
+    if country_org is not None:
+        country = country_org.lower()
+    else: country = "italia"
 
     if country != "italia" and country != "":
         return __country_not_found__(country, country_org), \
