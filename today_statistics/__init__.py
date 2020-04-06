@@ -27,6 +27,10 @@ def get_today_national_stats(params):
     Link: https://github.com/pcm-dpc/COVID-19
     :return: string for googleResponse textToSpeech and Facebook
     """
+    country = params.get("location")
+    if country != "Italia" or country != "italia" or country != "ITALIA":
+        return __country_not_found__(country)
+
     today = date.today().strftime("%Y%m%d")
     yesterday = date.strftime(datetime.now() - timedelta(1), "%Y%m%d")
     url_today = "https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-andamento-nazionale/dpc-covid19-ita" \
@@ -51,6 +55,13 @@ def get_today_national_stats(params):
     return __make_today_national_stats_google_response__(df_toRecap), \
            __make__today_national_stats_facebook_response__(df_toRecap)
 
+def __country_not_found__(countryName):
+    displayText = "🧐 Purtroppo non ho informazioni su{}, attualmente riesco a darti informazioni sull'Italia " \
+                  "e le sue regioni."
+
+    textToSpeech = displayText  # TODO: remove when there will be support for Google Action
+
+    return textToSpeech, displayText
 
 def get_today_regional_stats(params):
     region = params.get("region")
