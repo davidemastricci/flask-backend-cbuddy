@@ -56,17 +56,6 @@ def create_simple_response(googleAssistanResponse, facebookResponse):
                                 }
                             }
                         ],
-
-                        "richContent": [
-                            [
-                                {
-                                    "type": "info",
-                                    "title": "Fonte Dati Protezione Civile",
-                                    "actionLink": "https://github.com/pcm-dpc/COVID-19"
-                                }
-                            ]
-                        ],
-
                     }
                 }
             },
