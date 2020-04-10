@@ -8,7 +8,7 @@ app = Flask(__name__)
 # constants
 GET_NATIONAL_STATS = "lookup_today_statisics"
 GET_REGIONAL_STATS = "lookup_today_regional_statisics"
-GET_PROVINCE_STATS = ""
+GET_PROVINCE_STATS = ""  # TODO: implement functionality
 
 
 # default route
@@ -55,7 +55,18 @@ def create_simple_response(googleAssistanResponse, facebookResponse):
                                     "displayText": googleAssistanResponse[1]
                                 }
                             }
-                        ]
+                        ],
+
+                        "richContent": [
+                            [
+                                {
+                                    "type": "info",
+                                    "title": "Fonte Dati Protezione Civile",
+                                    "actionLink": "https://github.com/pcm-dpc/COVID-19"
+                                }
+                            ]
+                        ],
+
                     }
                 }
             },
@@ -63,8 +74,6 @@ def create_simple_response(googleAssistanResponse, facebookResponse):
         }
 
 
-def lista():
-    return ""
 
 
 def __actions__(action):
@@ -77,7 +86,6 @@ def __actions__(action):
         GET_NATIONAL_STATS: get_today_national_stats,
         GET_REGIONAL_STATS: get_today_regional_stats,
         GET_PROVINCE_STATS: get_today_province_stats,
-        3: 'Wednesday',
         4: 'Thursday',
         5: 'Friday',
         6: 'Saturday'
