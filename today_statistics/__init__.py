@@ -4,7 +4,7 @@ from urllib.error import HTTPError
 
 # constants to access csv data
 DIMESSI = "dimessi_guariti"
-NUOVI_POSITIVI = "variazione_totale_positivi"
+NUOVI_POSITIVI = "nuovi_positivi"
 DECEDUTI = "deceduti"
 REGION_NAME = "denominazione_regione"
 PROVINCE_NAME = "denominazione_provincia"
