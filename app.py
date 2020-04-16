@@ -8,7 +8,7 @@ app = Flask(__name__)
 # constants
 GET_NATIONAL_STATS = "lookup_today_statisics"
 GET_REGIONAL_STATS = "lookup_today_regional_statisics"
-GET_PROVINCE_STATS = ""  # TODO: implement functionality
+GET_PROVINCE_STATS = "lookup_today_provincial_statisics"  
 
 
 # default route
