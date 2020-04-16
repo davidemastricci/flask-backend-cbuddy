@@ -155,18 +155,18 @@ def get_today_province_stats(params): # TODO: make it correct
 
 def __make_today_provincial_stats_google_response__(data, date):
     print(data[PROVINCE_NAME].iloc[0])
-    displayText = "A differenza delle regioni e della nazione per le province sono disponibili" \
+    displayText = "A differenza delle regioni e della nazione, per le province sono disponibili" \
                   " il numero totale dei casi positivi.\n"
-    displayText += "Situazione aggiornata delle provincia {} al {}:\n".format(data[PROVINCE_NAME].iloc[0], date)
+    displayText += "Situazione aggiornata della provincia {} al {}:\n".format(data[PROVINCE_NAME].iloc[0], date)
 
     displayText += "🔴 {} casi positivi totali \n".format(data[PROVINCE_TOTAL_CASES].iloc[0])
 
     displayText += SOURCE_PROTEZIONE_CIVILE
     displayText += "\n\n Posso esserti ancora d'aiuto?"
 
-    textToSpeech = "A differenza delle regioni e della nazione per le province sono disponibili" \
+    textToSpeech = "A differenza delle regioni e della nazione, per le province sono disponibili" \
                   " il numero totale dei casi positivi.\n"
-    textToSpeech += "Situazione aggiornata delle provincia {} al {}:\n".format(data[PROVINCE_NAME].iloc[0], date)
+    textToSpeech += "Situazione aggiornata della provincia {} al {}:\n".format(data[PROVINCE_NAME].iloc[0], date)
 
     textToSpeech += "🔴 {} casi positivi totali \n".format(data[PROVINCE_TOTAL_CASES].iloc[0])
 
