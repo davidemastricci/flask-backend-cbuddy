@@ -9,6 +9,7 @@ DECEDUTI = "deceduti"
 REGION_NAME = "denominazione_regione"
 PROVINCE_NAME = "denominazione_provincia"
 DATA = "data"
+PROVINCE_TOTAL_CASES = "totale_casi"
 
 # fix trentino sub region
 TRENTINO_ALTO_ADIGE = "Trenitino-Alto Adige"
@@ -124,7 +125,7 @@ def get_today_regional_stats(params):
 
 
 def get_today_province_stats(params): # TODO: make it correct
-    province = params.get("province")
+    province = params.get("province")[0]
     today = date.today().strftime("%Y%m%d")
     yesterday = date.strftime(datetime.now() - timedelta(1), "%Y%m%d")
 
@@ -141,53 +142,35 @@ def get_today_province_stats(params): # TODO: make it correct
         url_yesterday = url_yesterday.replace(yesterday, new_yesterday)
         df_today = pd.read_csv(url_today, error_bad_lines=False)
 
+    today_date = (df_today[DATA][0]).split("T")[0]
+    print(PROVINCE_NAME)
+    print(province)
     df_today = df_today[df_today[PROVINCE_NAME] == province]
-    df_today.rename(index={df_today.index.values[0]: TODAY}, inplace=True)  # rename the index with today
-    df_yesterday = pd.read_csv(url_yesterday, error_bad_lines=False)
-    df_yesterday = df_yesterday[df_yesterday[PROVINCE_NAME] == province]
-    df_yesterday.rename(index={df_yesterday.index.values[0]: YESTERDAY}, inplace=True)
+    print(df_today[PROVINCE_NAME])
+    #df_today.rename(index={df_today.index.values[0]: TODAY}, inplace=True)  # rename the index with today
 
-    df_toRecap = df_today.append(df_yesterday)
-    return __make_today_provincial_stats_google_response__(df_toRecap), \
-           __make_today__provincial_stats_google_response__(df_toRecap)
+    return __make_today_provincial_stats_google_response__(df_today, today_date), \
+           __make_today__provincial_stats_google_response__(df_today, today_date)
 
 
 def __make_today_provincial_stats_google_response__(data, date):
-    today_vs_yesterday_positive = data[NUOVI_POSITIVI].loc[TODAY] - data[NUOVI_POSITIVI].loc[YESTERDAY]
-    today_vs_yesterday_dead = data[DECEDUTI].loc[TODAY] - data[DECEDUTI].loc[YESTERDAY]
-    today_vs_yesterday_healed = data[DIMESSI].loc[TODAY] - data[DIMESSI].loc[YESTERDAY]
-    displayText = "Situazione aggiornata al {}:\n".format(date)
+    print(data[PROVINCE_NAME].iloc[0])
+    displayText = "A differenza delle regioni e della nazione per le province sono disponibili" \
+                  " il numero totale dei casi positivi.\n"
+    displayText += "Situazione aggiornata delle provincia {} al {}:\n".format(data[PROVINCE_NAME].iloc[0], date)
 
-    displayText += "🔴 {} nuovi casi positivi, {} {} rispetto a ieri;" \
-        .format(data[NUOVI_POSITIVI].loc[TODAY], today_vs_yesterday_positive,
-                " caso in più" if today_vs_yesterday_positive == 1 else "casi in più" if today_vs_yesterday_positive > 0 else "")
+    displayText += "🔴 {} casi positivi totali \n".format(data[PROVINCE_TOTAL_CASES].iloc[0])
 
-    displayText += "\n☠️ {} persone decedute, {} {} rispetto a ieri;" \
-        .format(data[DECEDUTI].loc[TODAY], today_vs_yesterday_dead,
-                " caso in più" if today_vs_yesterday_dead == 1 else "casi in più" if today_vs_yesterday_dead > 0 else "")
-
-    displayText += "\n💚 {} dimessi dagli ospedali e guariti, {} {} rispetto a ieri." \
-        .format(data[DIMESSI].loc[TODAY], today_vs_yesterday_healed,
-                " caso in più" if today_vs_yesterday_healed == 1 else "casi in più" if today_vs_yesterday_healed > 0 else "")
-
-    displayText += "\n"
     displayText += SOURCE_PROTEZIONE_CIVILE
     displayText += "\n\n Posso esserti ancora d'aiuto?"
 
-    textToSpeech = "La situazione aggiornata è:\n"
+    textToSpeech = "A differenza delle regioni e della nazione per le province sono disponibili" \
+                  " il numero totale dei casi positivi.\n"
+    textToSpeech += "Situazione aggiornata delle provincia {} al {}:\n".format(data[PROVINCE_NAME].iloc[0], date)
 
-    textToSpeech += "{} {} rispetto a ieri;" \
-        .format(today_vs_yesterday_positive,
-                " caso positivo in più" if today_vs_yesterday_positive == 1 else "casi positivi in più" if today_vs_yesterday_positive > 0 else "casi positivi")
+    textToSpeech += "🔴 {} casi positivi totali \n".format(data[PROVINCE_TOTAL_CASES].iloc[0])
 
-    textToSpeech += "\n{} {} rispetto a ieri;" \
-        .format(today_vs_yesterday_dead,
-                " decesso in più" if today_vs_yesterday_dead == 1 else "decessi in più" if today_vs_yesterday_dead > 0 else "decessi")
-
-    textToSpeech += "\n{} {} rispetto a ieri." \
-        .format(today_vs_yesterday_healed,
-                "dimesso dall'ospedale e guarito in più" if today_vs_yesterday_healed == 1 else "dimessi dall'ospedale e guariti in più" if today_vs_yesterday_healed > 0 else "dimessi e guariti")
-
+    textToSpeech += SOURCE_PROTEZIONE_CIVILE
     textToSpeech += "\n\n Posso esserti ancora d'aiuto?"
 
     return textToSpeech, displayText
