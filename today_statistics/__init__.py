@@ -141,6 +141,10 @@ def get_today_province_stats(params): # TODO: make it correct
         url_today = url_today.replace(today, new_today)
         url_yesterday = url_yesterday.replace(yesterday, new_yesterday)
         df_today = pd.read_csv(url_today, error_bad_lines=False)
+    except UnicodeDecodeError:
+        url_today = "https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/" \
+                    "dati-province/dpc-covid19-ita-province-latest.csv"
+        df_today = pd.read_csv(url_today, error_bad_lines=False)
 
     today_date = (df_today[DATA][0]).split("T")[0]
     print(PROVINCE_NAME)
