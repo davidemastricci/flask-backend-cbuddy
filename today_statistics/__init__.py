@@ -1,6 +1,8 @@
 import pandas as pd
 from datetime import date, datetime, timedelta
 from urllib.error import HTTPError
+import plotly.io as pio
+import plotly.graph_objects as go
 
 # constants to access csv data
 DIMESSI = "dimessi_guariti"
@@ -186,9 +188,8 @@ def __make_today_national_stats_google_response__(data, date):
     today_vs_yesterday_healed = data[DIMESSI].loc[TODAY] - data[DIMESSI].loc[YESTERDAY]
     displayText = "Situazione aggiornata al {}:\n".format(date)
 
-    displayText += "🔴 {} nuovi casi positivi, {} {} rispetto a ieri;" \
-        .format(data[NUOVI_POSITIVI].loc[TODAY], today_vs_yesterday_positive,
-                " caso in più" if today_vs_yesterday_positive == 1 else "casi in più" if today_vs_yesterday_positive > 0 else "")
+    displayText += "🔴 {} nuovi casi positivi;" \
+        .format(data[NUOVI_POSITIVI].loc[TODAY], today_vs_yesterday_positive)
 
     displayText += "\n☠️ {} persone decedute, {} {} rispetto a ieri;" \
         .format(data[DECEDUTI].loc[TODAY], today_vs_yesterday_dead,
@@ -229,9 +230,8 @@ def __make__today_regional_stats_google_response__(data, date):
     # data[REGION_NAME].loc[TODAY]
     displayText = "Situazione aggiornata al {}:\n".format(date)
 
-    displayText += "🔴 {} nuovi casi positivi, {} {} rispetto a ieri;" \
-        .format(data[NUOVI_POSITIVI].loc[TODAY], today_vs_yesterday_positive,
-                " caso in più" if today_vs_yesterday_positive == 1 else "casi in più" if today_vs_yesterday_positive > 0 else "")
+    displayText += "🔴 {} nuovi casi positivi;" \
+        .format(data[NUOVI_POSITIVI].loc[TODAY])
 
     displayText += "\n☠️ {} persone decedute, {} {} rispetto a ieri;" \
         .format(data[DECEDUTI].loc[TODAY], today_vs_yesterday_dead,
@@ -286,3 +286,21 @@ def __trentinoFix__(df):
     df_bo = df_bo.append(df_tr).sum()
     df_return = a = pd.DataFrame(df_bo.values.reshape(1, 19), columns=df_bo.index.values)
     return df_return
+
+
+def createNewInfectsGraph():
+    fig1 = go.Figure()
+
+    url = "https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv"
+    df_today = pd.read_csv(url, error_bad_lines=False)
+
+    fig1.add_trace(go.Scatter(x=df_today['data'], y=df_today['nuovi_positivi'],
+                              mode='lines+markers', name="Andamento infezione", line=dict(color="#67c0be")))
+
+    fig1.update_layout(title={"text": "Andamendo giornaliero dell'infezione"}, font=dict(color="#67c0be"),
+                       xaxis_title="Giorni", yaxis_title="Nuovi positivi", plot_bgcolor='rgba(0,0,0,1)',
+                       paper_bgcolor='rgba(0,0,0,1)')
+    fig1.update_xaxes(gridcolor='rgba(0,0,0,1)')
+    fig1.update_yaxes(gridcolor='rgba(0,0,0,1)')
+
+    pio.write_image(fig1, './filename.svg', width=700, height=775)
